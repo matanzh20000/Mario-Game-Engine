@@ -2,7 +2,10 @@ package Jade;
 
 public abstract class Scene {
 
+    protected Camera camera;
+
     public Scene() {
+
     }
 
     public void init() {
