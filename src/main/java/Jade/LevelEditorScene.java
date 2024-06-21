@@ -1,5 +1,6 @@
 package Jade;
 
+import components.FontRender;
 import components.SpriteRender;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
@@ -69,6 +70,7 @@ public class LevelEditorScene extends Scene {
         System.out.println("Creating : Test Object");
         this.testObj = new GameObject("Test Object");
         this.testObj.addComponent(new SpriteRender());
+        this.testObj.addComponent(new FontRender());
         this.addGameObjectToScene(this.testObj);
         this.camera = new Camera(new Vector2f(0, 0));
         defaultShader = new Shader("assets/shaders/default.glsl");
