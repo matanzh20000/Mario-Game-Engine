@@ -1,0 +1,15 @@
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+--- a/.idea/.gitignore	
++++ b/.idea/.gitignore	(date 1719232903049)
+@@ -3,3 +3,6 @@
+ /workspace.xml
+ # Editor-based HTTP Client requests
+ /httpRequests/
++# Datasource local storage ignored files
++/dataSources/
++/dataSources.local.xml
