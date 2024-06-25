@@ -216,6 +216,14 @@ public class RenderBatch {
         elements[offsetArrayIndex + 5] = offset + 1;
     }
 
+    public boolean hasTextureRoom() {
+        return textures.size() < 8;
+    }
+
+    public boolean hasTexture(Texture texture) {
+        return textures.contains(texture);
+    }
+
     public boolean hasRoom() {
         return this.hasRoom;
     }
