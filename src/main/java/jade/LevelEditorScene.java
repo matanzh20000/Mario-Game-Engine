@@ -11,6 +11,10 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class LevelEditorScene extends Scene {
 
+    private GameObject obj1;
+    private GameObject obj2;
+    private SpriteSheet sprites;
+
     public LevelEditorScene() {
 
     }
@@ -20,13 +24,14 @@ public class LevelEditorScene extends Scene {
         loadResources();
         this.camera = new Camera(new Vector2f(-250, 0));
 
-        SpriteSheet sprites = AssetPool.getSpriteSheet("assets/images/spritesheet.png");
+        sprites = AssetPool.getSpriteSheet("assets/images/spritesheet.png");
 
-        GameObject obj1 = new GameObject("Object 1", new Transform(new Vector2f(100, 100), new Vector2f(256, 256)));
+        obj1 = new GameObject("Object 1",
+                new Transform(new Vector2f(100, 0), new Vector2f(60, 60)), -1);
         obj1.addComponent(new SpriteRenderer(sprites.getSprite(0)));
         this.addGameObjectToScene(obj1);
 
-        GameObject obj2 = new GameObject("Object 2", new Transform(new Vector2f(400, 100), new Vector2f(256, 256)));
+        obj2 = new GameObject("Object 2", new Transform(new Vector2f(400, 0), new Vector2f(50, 50)), 2);
         obj2.addComponent(new SpriteRenderer(sprites.getSprite(15)));
         this.addGameObjectToScene(obj2);
 
@@ -39,17 +44,27 @@ public class LevelEditorScene extends Scene {
                 new SpriteSheet(AssetPool.getTexture("assets/images/spritesheet.png"), 16, 16, 26, 0 ));
     }
 
+    private int sprite1Index = 0;
+    private int sprite2Index = 14;
+    private float spriteFlipTime = 0.2f;
+    private float spriteFlipTimeLeft = 0.0f;
     @Override
     public void update(float dt) {
-        if (KeyListener.isKeyPressed(GLFW_KEY_RIGHT)) {
-            camera.position.x += 100f * dt;
-        } else if (KeyListener.isKeyPressed(GLFW_KEY_LEFT)) {
-            camera.position.x -= 100f * dt;
-        }
-        if (KeyListener.isKeyPressed(GLFW_KEY_UP)) {
-            camera.position.y += 100f * dt;
-        } else if (KeyListener.isKeyPressed(GLFW_KEY_DOWN)) {
-            camera.position.y -= 100f * dt;
+       spriteFlipTimeLeft -= 2.0f * dt;
+       obj1.transform.position.x += 20.0f * dt;
+       obj2.transform.position.x -= 20.0f * dt;
+        if (spriteFlipTimeLeft <= 0) {
+            spriteFlipTimeLeft = spriteFlipTime;
+            sprite1Index++;
+            sprite2Index++;
+            if (sprite1Index > 3) {
+                sprite1Index = 0;
+            }
+            if (sprite2Index > 15) {
+                sprite2Index = 14;
+            }
+            obj1.getComponent(SpriteRenderer.class).setSprite(sprites.getSprite(sprite1Index));
+            obj2.getComponent(SpriteRenderer.class).setSprite(sprites.getSprite(sprite2Index));
         }
 
         for (GameObject go : this.gameObjects) {
