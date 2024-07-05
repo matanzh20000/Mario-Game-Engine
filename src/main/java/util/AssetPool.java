@@ -31,6 +31,7 @@ public class AssetPool {
             return AssetPool.textures.get(file.getAbsolutePath());
         } else {
             Texture texture = new Texture(resourceName);
+            texture.init(resourceName);
             AssetPool.textures.put(file.getAbsolutePath(), texture);
             return texture;
         }

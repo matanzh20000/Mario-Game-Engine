@@ -1,8 +1,11 @@
 package jade;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import components.Sprite;
 import components.SpriteRenderer;
 import components.SpriteSheet;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import util.AssetPool;
@@ -23,17 +26,31 @@ public class LevelEditorScene extends Scene {
     public void init() {
         loadResources();
         this.camera = new Camera(new Vector2f(-250, 0));
+        if (levelLoaded) {
+            return;
+        }
 
         sprites = AssetPool.getSpriteSheet("assets/images/spritesheet.png");
 
         obj1 = new GameObject("Object 1",
                 new Transform(new Vector2f(100, 0), new Vector2f(60, 60)), -1);
-        obj1.addComponent(new SpriteRenderer(sprites.getSprite(0)));
+        SpriteRenderer obj1Sprite = new SpriteRenderer();
+        obj1Sprite.setColor(new Vector4f(1, 0, 0, 1));
+        obj1.addComponent(obj1Sprite);
         this.addGameObjectToScene(obj1);
+        this.activeGameObject = obj1;
 
         obj2 = new GameObject("Object 2", new Transform(new Vector2f(400, 0), new Vector2f(50, 50)), 2);
-        obj2.addComponent(new SpriteRenderer(sprites.getSprite(15)));
+        SpriteRenderer obj2SpriteRenderer = new SpriteRenderer();
+        Sprite obj2Sprite = new Sprite();
+        obj2Sprite.setTexture(AssetPool.getTexture("assets/images/spritesheet.png"));
+        obj2.addComponent(obj2SpriteRenderer);
         this.addGameObjectToScene(obj2);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        System.out.println(gson.toJson(obj2SpriteRenderer));
+
 
     }
 
@@ -72,5 +89,12 @@ public class LevelEditorScene extends Scene {
         }
 
         this.renderer.render();
+    }
+
+    @Override
+    public void imgui() {
+        ImGui.begin("Test Window");
+        ImGui.text("Hello, world!");
+        ImGui.end();
     }
 }
