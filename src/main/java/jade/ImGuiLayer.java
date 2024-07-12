@@ -1,7 +1,6 @@
 package jade;
 
 import imgui.*;
-
 import imgui.callbacks.ImStrConsumer;
 import imgui.callbacks.ImStrSupplier;
 import imgui.enums.ImGuiBackendFlags;
@@ -9,7 +8,7 @@ import imgui.enums.ImGuiConfigFlags;
 import imgui.enums.ImGuiKey;
 import imgui.enums.ImGuiMouseCursor;
 import imgui.gl3.ImGuiImplGl3;
-
+import scenes.Scene;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -25,7 +24,6 @@ public class ImGuiLayer {
 
     public ImGuiLayer(long glfwWindow) {
         this.glfwWindow = glfwWindow;
-
     }
 
     // Initialize Dear ImGui.
@@ -96,6 +94,10 @@ public class ImGuiLayer {
             io.setKeyShift(io.getKeysDown(GLFW_KEY_LEFT_SHIFT) || io.getKeysDown(GLFW_KEY_RIGHT_SHIFT));
             io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
             io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
+
+            if(!io.getWantCaptureKeyboard()) {
+                KeyListener.keyCallback(w, key, scancode, action, mods);
+            }
         });
 
         glfwSetCharCallback(glfwWindow, (w, c) -> {
@@ -117,6 +119,10 @@ public class ImGuiLayer {
 
             if (!io.getWantCaptureMouse() && mouseDown[1]) {
                 ImGui.setWindowFocus(null);
+            }
+
+            if (!io.getWantCaptureMouse()) {
+                MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
 
@@ -144,25 +150,25 @@ public class ImGuiLayer {
             }
         });
 
-//            // ------------------------------------------------------------
-//            // Fonts configuration
-//            // Read: https://raw.githubusercontent.com/ocornut/imgui/master/docs/FONTS.txt
-//
-            final ImFontAtlas fontAtlas = io.getFonts();
-            final ImFontConfig fontConfig = new ImFontConfig(); // Natively allocated object, should be explicitly destroyed
+        // ------------------------------------------------------------
+        // Fonts configuration
+        // Read: https://raw.githubusercontent.com/ocornut/imgui/master/docs/FONTS.txt
 
-            // Glyphs could be added per-font as well as per config used globally like here
-            fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
+        final ImFontAtlas fontAtlas = io.getFonts();
+        final ImFontConfig fontConfig = new ImFontConfig(); // Natively allocated object, should be explicitly destroyed
 
-            // Fonts merge example
-            fontConfig.setPixelSnapH(true);
-            fontAtlas.addFontFromFileTTF("assets/fonts/segoeui.ttf", 32.0f, fontConfig);
+        // Glyphs could be added per-font as well as per config used globally like here
+        fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
 
-            fontConfig.destroy(); // After all fonts were added we don't need this config more
+        // Fonts merge example
+        fontConfig.setPixelSnapH(true);
+        fontAtlas.addFontFromFileTTF("assets/fonts/segoeui.ttf", 24, fontConfig);
 
-            // ------------------------------------------------------------
-            // Use freetype instead of stb_truetype to build a fonts texture
-            ImGuiFreeType.buildFontAtlas(fontAtlas, ImGuiFreeType.RasterizerFlags.LightHinting);
+        fontConfig.destroy(); // After all fonts were added we don't need this config more
+
+        // ------------------------------------------------------------
+        // Use freetype instead of stb_truetype to build a fonts texture
+        ImGuiFreeType.buildFontAtlas(fontAtlas, ImGuiFreeType.RasterizerFlags.LightHinting);
 
         // Method initializes LWJGL3 renderer.
         // This method SHOULD be called after you've initialized your ImGui configuration (fonts and so on).
@@ -183,7 +189,6 @@ public class ImGuiLayer {
     }
 
     private void startFrame(final float deltaTime) {
-
         // Get window properties and mouse position
         float[] winWidth = {Window.getWidth()};
         float[] winHeight = {Window.getHeight()};
@@ -208,7 +213,6 @@ public class ImGuiLayer {
         // After Dear ImGui prepared a draw data, we use it in the LWJGL3 renderer.
         // At that moment ImGui will be rendered to the current OpenGL context.
         imGuiGl3.render(ImGui.getDrawData());
-
     }
 
     // If you want to clean a room after yourself - do it by yourself

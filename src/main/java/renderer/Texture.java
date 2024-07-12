@@ -13,9 +13,9 @@ public class Texture {
     private int texID;
     private int width, height;
 
-    public Texture(String filepath) {
-
-    }
+//    public Texture(String filepath) {
+//
+//    }
 
     public void init(String filepath) {
         this.filepath = filepath;
@@ -42,6 +42,7 @@ public class Texture {
         if (image != null) {
             this.width = width.get(0);
             this.height = height.get(0);
+
             if (channels.get(0) == 3) {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(0), height.get(0),
                         0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -58,19 +59,23 @@ public class Texture {
         stbi_image_free(image);
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
     public void bind() {
         glBindTexture(GL_TEXTURE_2D, texID);
     }
 
     public void unbind() {
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public int getId() {
+        return this.texID;
     }
 }

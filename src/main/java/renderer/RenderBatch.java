@@ -46,10 +46,10 @@ public class RenderBatch implements Comparable<RenderBatch> {
     private int zIndex;
 
     public RenderBatch(int maxBatchSize, int zIndex) {
+        this.zIndex = zIndex;
         shader = AssetPool.getShader("assets/shaders/default.glsl");
         this.sprites = new SpriteRenderer[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
-        this.zIndex = zIndex;
 
         // 4 vertices quads
         vertices = new float[maxBatchSize * 4 * VERTEX_SIZE];
@@ -112,12 +112,12 @@ public class RenderBatch implements Comparable<RenderBatch> {
     public void render() {
         boolean rebufferData = false;
         for (int i=0; i < numSprites; i++) {
-           SpriteRenderer sprite = sprites[i];
-           if (sprite.isDirty()) {
-               loadVertexProperties(i);
-               sprite.setClean();
+            SpriteRenderer spr = sprites[i];
+            if (spr.isDirty()) {
+                loadVertexProperties(i);
+                spr.setClean();
                 rebufferData = true;
-           }
+            }
         }
         if (rebufferData) {
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -228,16 +228,16 @@ public class RenderBatch implements Comparable<RenderBatch> {
         elements[offsetArrayIndex + 5] = offset + 1;
     }
 
-    public boolean hasTextureRoom() {
-        return textures.size() < 8;
-    }
-
-    public boolean hasTexture(Texture texture) {
-        return textures.contains(texture);
-    }
-
     public boolean hasRoom() {
         return this.hasRoom;
+    }
+
+    public boolean hasTextureRoom() {
+        return this.textures.size() < 8;
+    }
+
+    public boolean hasTexture(Texture tex) {
+        return this.textures.contains(tex);
     }
 
     public int zIndex() {
@@ -246,6 +246,6 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
     @Override
     public int compareTo(RenderBatch o) {
-        return Integer.compare(zIndex, o.zIndex);
+        return Integer.compare(this.zIndex, o.zIndex());
     }
 }

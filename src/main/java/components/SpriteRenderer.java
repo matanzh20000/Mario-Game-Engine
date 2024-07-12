@@ -1,7 +1,6 @@
 package components;
 
 import imgui.ImGui;
-import jade.Component;
 import jade.Transform;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -11,9 +10,9 @@ public class SpriteRenderer extends Component {
 
     private Vector4f color = new Vector4f(1, 1, 1, 1);
     private Sprite sprite = new Sprite();
-    private transient boolean isDirty = false;
 
     private transient Transform lastTransform;
+    private transient boolean isDirty = true;
 
 //    public SpriteRenderer(Vector4f color) {
 //        this.color = color;
@@ -34,9 +33,18 @@ public class SpriteRenderer extends Component {
 
     @Override
     public void update(float dt) {
-        if (!this.lastTransform.equals(gameObject.transform)) {
+        if (!this.lastTransform.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastTransform);
             isDirty = true;
+        }
+    }
+
+    @Override
+    public void imgui() {
+        float[] imColor = {color.x, color.y, color.z, color.w};
+        if (ImGui.colorPicker4("Color Picker: ", imColor)) {
+            this.color.set(imColor[0], imColor[1], imColor[2], imColor[3]);
+            this.isDirty = true;
         }
     }
 
@@ -58,7 +66,7 @@ public class SpriteRenderer extends Component {
     }
 
     public void setColor(Vector4f color) {
-        if (this.color.equals(color)) {
+        if (!this.color.equals(color)) {
             this.isDirty = true;
             this.color.set(color);
         }
@@ -70,15 +78,5 @@ public class SpriteRenderer extends Component {
 
     public void setClean() {
         this.isDirty = false;
-    }
-
-
-    @Override
-    public void imgui() {
-        float [] imColor = {color.x, color.y, color.z, color.w};
-       if(ImGui.colorPicker4("Color Picker: ", imColor)) {
-           color.set(imColor[0], imColor[1], imColor[2], imColor[3]);
-           isDirty = true;
-       }
     }
 }
