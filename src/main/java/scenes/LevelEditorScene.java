@@ -65,10 +65,15 @@ public class LevelEditorScene extends Scene {
     }
 
 
+    float x = 0;
+    float y = 0;
+
     @Override
     public void update(float dt) {
-
         levelEditorStuff.update(dt);
+        DebugDraw.addCircle2D(new Vector2f(x, y), 64, new Vector3f(1, 0, 0), 1);
+        x += 50 *dt;
+        y += 50 * dt;
         for (GameObject go : this.gameObjects) {
             go.update(dt);
         }
