@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class Scene {
 
@@ -52,20 +53,17 @@ public abstract class Scene {
         }
     }
 
+    public GameObject getGameObject(int gameObjectId) {
+        Optional<GameObject> result = this.gameObjects.stream()
+                .filter(gameObject -> gameObject.getUid() == gameObjectId).findFirst();
+        return result.orElse(null);
+    }
+
     public abstract void update(float dt);
+    public abstract void render();
 
     public Camera camera() {
         return this.camera;
-    }
-
-    public void sceneImgui() {
-        if (activeGameObject != null) {
-            ImGui.begin("Inspector");
-            activeGameObject.imgui();
-            ImGui.end();
-        }
-
-        imgui();
     }
 
     public void imgui() {
@@ -81,7 +79,13 @@ public abstract class Scene {
 
         try {
             FileWriter writer = new FileWriter("level.txt");
-            writer.write(gson.toJson(this.gameObjects));
+            List<GameObject> objsToSerialize = new ArrayList<>();
+            for (GameObject go : this.gameObjects) {
+                if (go.doSerialization()) {
+                    objsToSerialize.add(go);
+                }
+            }
+            writer.write(gson.toJson(objsToSerialize));
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();

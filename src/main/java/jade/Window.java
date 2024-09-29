@@ -3,11 +3,11 @@ package jade;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
-import renderer.DebugDraw;
-import renderer.FrameBuffer;
+import renderer.*;
 import scenes.LevelEditorScene;
 import scenes.LevelScene;
 import scenes.Scene;
+import util.AssetPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -20,6 +20,7 @@ public class Window {
     private long glfwWindow;
     private ImGuiLayer imguiLayer;
     private FrameBuffer framebuffer;
+    private PickingTexture pickingTexture;
 
     public float r, g, b, a;
     private boolean fadeToBlack = false;
@@ -130,9 +131,14 @@ public class Window {
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        this.imguiLayer = new ImGuiLayer(glfwWindow);
+
+
+        this.framebuffer = new FrameBuffer(3840, 2160);
+        this.pickingTexture = new PickingTexture(3840, 2160);
+        glViewport(0, 0, 3840, 2160);
+
+        this.imguiLayer = new ImGuiLayer(glfwWindow, pickingTexture);
         this.imguiLayer.initImGui();
-        //this.framebuffer = new FrameBuffer(getWidth(), getHeight());
 
         Window.changeScene(0);
     }
@@ -142,21 +148,50 @@ public class Window {
         float endTime;
         float dt = -1.0f;
 
+        Shader defaultShader = AssetPool.getShader("assets/shaders/default.glsl");
+        Shader pickingShader = AssetPool.getShader("assets/shaders/pickingShader.glsl");
+
         while (!glfwWindowShouldClose(glfwWindow)) {
             // Poll events
             glfwPollEvents();
 
+            // Render pass 1
+            glDisable(GL_BLEND);
+            pickingTexture.enableWriting();
+
+            glViewport(0, 0, 3840, 2160);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            Renderer.bindShader(pickingShader);
+            currentScene.render();
+
+            if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+                int x = (int)MouseListener.getScreenX();
+                int y = (int)MouseListener.getScreenY();
+            }
+
+            pickingTexture.disableWriting();
+            glEnable(GL_BLEND);
+
+            // Render pass2
             DebugDraw.beginFrame();
 
+            this.framebuffer.bind();
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
+
             if (dt >= 0) {
                 DebugDraw.draw();
+                Renderer.bindShader(defaultShader);
                 currentScene.update(dt);
+                currentScene.render();
             }
+            this.framebuffer.unbind();
 
             this.imguiLayer.update(dt, currentScene);
             glfwSwapBuffers(glfwWindow);
+            MouseListener.endFrame();
 
             endTime = (float)glfwGetTime();
             dt = endTime - beginTime;
@@ -180,5 +215,17 @@ public class Window {
 
     public static void setHeight(int newHeight) {
         get().height = newHeight;
+    }
+
+    public static FrameBuffer getFrameBuffer() {
+        return get().framebuffer;
+    }
+
+    public static float getTargetAspectRatio() {
+        return 16.0f / 9.0f;
+    }
+
+    public static ImGuiLayer getImguiLayer() {
+        return get().imguiLayer;
     }
 }

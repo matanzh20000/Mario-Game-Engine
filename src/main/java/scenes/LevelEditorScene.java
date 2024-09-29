@@ -10,6 +10,8 @@ import org.joml.Vector4f;
 import renderer.DebugDraw;
 import util.AssetPool;
 
+import static jade.Window.getImguiLayer;
+
 public class LevelEditorScene extends Scene {
 
     private GameObject obj1;
@@ -17,51 +19,44 @@ public class LevelEditorScene extends Scene {
     SpriteRenderer obj1Sprite;
 
     GameObject levelEditorStuff = new GameObject("Level Editor Stuff", new Transform(new Vector2f()), 0);
+
     public LevelEditorScene() {
 
     }
 
     @Override
     public void init() {
+        loadResources();
+        sprites = AssetPool.getSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png");
+        Spritesheet gizmos = AssetPool.getSpritesheet("assets/images/gizmos.png");
+        this.camera = new Camera(new Vector2f(-250, 0));
         levelEditorStuff.addComponent(new GridLInes());
         levelEditorStuff.addComponent(new MouseControls());
-        loadResources();
-        this.camera = new Camera(new Vector2f(-250, 0));
-        sprites = AssetPool.getSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png");
-        if (levelLoaded) {
-            this.activeGameObject = gameObjects.get(0);
-            return;
-        }
+        levelEditorStuff.addComponent(new EditorCamera(this.camera));
+        levelEditorStuff.addComponent(new TranslateGizmo(gizmos.getSprite(1), Window.getImguiLayer().getPropertiesWindow()));
 
-
-//        obj1 = new GameObject("Object 1", new Transform(new Vector2f(200, 100),
-//                new Vector2f(256, 256)), 2);
-//        obj1Sprite = new SpriteRenderer();
-//        obj1Sprite.setColor(new Vector4f(1, 0, 0, 1));
-//        obj1.addComponent(obj1Sprite);
-//        obj1.addComponent(new Rigidbody());
-//        this.addGameObjectToScene(obj1);
-//        this.activeGameObject = obj1;
-//
-//        GameObject obj2 = new GameObject("Object 2",
-//                new Transform(new Vector2f(400, 100), new Vector2f(256, 256)), 3);
-//        SpriteRenderer obj2SpriteRenderer = new SpriteRenderer();
-//        Sprite obj2Sprite = new Sprite();
-//        obj2Sprite.setTexture(AssetPool.getTexture("assets/images/blendImage2.png"));
-//        obj2SpriteRenderer.setSprite(obj2Sprite);
-//        obj2.addComponent(obj2SpriteRenderer);
-//        this.addGameObjectToScene(obj2);
-
+        levelEditorStuff.start();
     }
 
     private void loadResources() {
         AssetPool.getShader("assets/shaders/default.glsl");
 
-        // TODO: FIX TEXTURE SAVE SYSTEM TO USE PATH INSTEAD OF ID
         AssetPool.addSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png",
                 new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/decorationsAndBlocks.png"),
                         16, 16, 81, 0));
+        AssetPool.addSpritesheet("assets/images/gizmos.png",
+                new Spritesheet(AssetPool.getTexture("assets/images/gizmos.png"),
+                24, 48, 2, 0));
         AssetPool.getTexture("assets/images/blendImage2.png");
+
+        for (GameObject g : gameObjects) {
+            if (g.getComponent(SpriteRenderer.class) != null) {
+                SpriteRenderer spr = g.getComponent(SpriteRenderer.class);
+                if (spr.getTexture() != null) {
+                    spr.setTexture(AssetPool.getTexture(spr.getTexture().getFilepath()));
+                }
+            }
+        }
     }
 
 
@@ -71,18 +66,24 @@ public class LevelEditorScene extends Scene {
     @Override
     public void update(float dt) {
         levelEditorStuff.update(dt);
-        DebugDraw.addCircle2D(new Vector2f(x, y), 64, new Vector3f(1, 0, 0), 1);
-        x += 50 *dt;
-        y += 50 * dt;
+        this.camera.adjustProjection();
         for (GameObject go : this.gameObjects) {
             go.update(dt);
         }
 
+    }
+
+    @Override
+    public void render() {
         this.renderer.render();
     }
 
     @Override
     public void imgui() {
+        ImGui.begin("Level Editor Settings");
+        levelEditorStuff.imgui();
+        ImGui.end();
+
         ImGui.begin("Test window");
 
         ImVec2 windowPos = new ImVec2();
