@@ -3,28 +3,30 @@ package jade;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import util.Settings;
 
 public class Camera {
-    private Matrix4f projectionMatrix, viewMatrix, invereseProjection, inverseView;
+    private Matrix4f projectionMatrix, viewMatrix, inverseProjection, inverseView;
     public Vector2f position;
-    private Vector2f projectionSize = new Vector2f(Settings.GRID_WIDTH * 40.0f, Settings.GRID_HEIGHT * 21.0f);
-    private float zoom = 1.0f;
+    private float projecctionWidth = 6.0f;
+    private float projectionHeight = 3.0f;
+    private Vector2f projectionSize = new Vector2f(projecctionWidth, projectionHeight);
 
+    private float zoom = 1.0f;
 
     public Camera(Vector2f position) {
         this.position = position;
         this.projectionMatrix = new Matrix4f();
         this.viewMatrix = new Matrix4f();
-        this.invereseProjection = new Matrix4f();
+        this.inverseProjection = new Matrix4f();
         this.inverseView = new Matrix4f();
         adjustProjection();
     }
 
     public void adjustProjection() {
         projectionMatrix.identity();
-        projectionMatrix.ortho(0.0f, projectionSize.x * this.zoom, 0.0f, projectionSize.y * zoom, 0.0f, 100.0f);
-        projectionMatrix.invert(invereseProjection);
+        projectionMatrix.ortho(0.0f, projectionSize.x * this.zoom,
+                0.0f, projectionSize.y * zoom, 0.0f, 100.0f);
+        projectionMatrix.invert(inverseProjection);
     }
 
     public Matrix4f getViewMatrix() {
@@ -44,7 +46,7 @@ public class Camera {
     }
 
     public Matrix4f getInverseProjection() {
-        return this.invereseProjection;
+        return this.inverseProjection;
     }
 
     public Matrix4f getInverseView() {
@@ -56,12 +58,11 @@ public class Camera {
     }
 
     public float getZoom() {
-        return this.zoom;
+        return zoom;
     }
 
     public void setZoom(float zoom) {
         this.zoom = zoom;
-        adjustProjection();
     }
 
     public void addZoom(float value) {

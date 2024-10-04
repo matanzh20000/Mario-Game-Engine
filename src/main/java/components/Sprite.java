@@ -23,28 +23,28 @@ public class Sprite {
         return this.texCoords;
     }
 
-    public void setTexture(Texture tex) {
-        this.texture = tex;
-    }
-
-    public void setTexCoords(Vector2f[] texCoords) {
-        this.texCoords = texCoords;
-    }
-
     public float getWidth() {
         return width;
-    }
-
-    public float getHeight() {
-        return height;
     }
 
     public void setWidth(float width) {
         this.width = width;
     }
 
+    public float getHeight() {
+        return height;
+    }
+
     public void setHeight(float height) {
         this.height = height;
+    }
+
+    public void setTexture(Texture tex) {
+        this.texture = tex;
+    }
+
+    public void setTexCoords(Vector2f[] texCoords) {
+        this.texCoords = texCoords;
     }
 
     public int getTexId() {

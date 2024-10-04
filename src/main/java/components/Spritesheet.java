@@ -49,6 +49,6 @@ public class Spritesheet {
     }
 
     public int size() {
-        return this.sprites.size();
+        return sprites.size();
     }
 }

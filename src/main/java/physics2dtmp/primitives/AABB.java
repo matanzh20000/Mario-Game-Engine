@@ -1,7 +1,7 @@
-package physics2d.primitives;
+package physics2dtmp.primitives;
 
 import org.joml.Vector2f;
-import physics2d.rigidbody.Rigidbody2D;
+import physics2dtmp.rigidbody.Rigidbody2D;
 
 // Axis Aligned Bounding Box
 public class AABB {
@@ -24,5 +24,14 @@ public class AABB {
 
     public Vector2f getMax() {
         return new Vector2f(this.rigidbody.getPosition()).add(this.halfSize);
+    }
+
+    public void setRigidbody(Rigidbody2D rb) {
+        this.rigidbody = rb;
+    }
+
+    public void setSize(Vector2f size) {
+        this.size.set(size);
+        this.halfSize.set(size.x / 2.0f, size.y / 2.0f);
     }
 }
