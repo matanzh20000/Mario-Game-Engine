@@ -51,10 +51,11 @@ public class RenderBatch implements Comparable<RenderBatch> {
     private Renderer renderer;
 
     public RenderBatch(int maxBatchSize, int zIndex, Renderer renderer) {
+        this.renderer = renderer;
+
         this.zIndex = zIndex;
         this.sprites = new SpriteRenderer[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
-        this.renderer = renderer;
 
         // 4 vertices quads
         vertices = new float[maxBatchSize * 4 * VERTEX_SIZE];
@@ -122,11 +123,18 @@ public class RenderBatch implements Comparable<RenderBatch> {
         for (int i=0; i < numSprites; i++) {
             SpriteRenderer spr = sprites[i];
             if (spr.isDirty()) {
-                loadVertexProperties(i);
-                spr.setClean();
-                rebufferData = true;
+                if (!hasTexture(spr.getTexture())) {
+                    this.renderer.destroyGameObject(spr.gameObject);
+                    this.renderer.add(spr.gameObject);
+                } else {
+                    loadVertexProperties(i);
+                    spr.setClean();
+                    rebufferData = true;
+                }
             }
-            if(spr.gameObject.transform.zIndex != this.zIndex) {
+
+            // TODO: get better solution for this
+            if (spr.gameObject.transform.zIndex != this.zIndex) {
                 destroyIfExists(spr.gameObject);
                 renderer.add(spr.gameObject);
                 i--;

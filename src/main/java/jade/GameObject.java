@@ -15,7 +15,7 @@ public class GameObject {
     private static int ID_COUNTER = 0;
     private int uid = -1;
 
-    private String name;
+    public String name;
     private List<Component> components;
     public transient Transform transform;
     private boolean doSerialization = true;
@@ -91,6 +91,29 @@ public class GameObject {
         }
     }
 
+    public GameObject copy() {
+        // TODO: come up with cleaner solution
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new ComponentDeserializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
+                .enableComplexMapKeySerialization()
+                .create();
+        String objAsJson = gson.toJson(this);
+        GameObject obj = gson.fromJson(objAsJson, GameObject.class);
+
+        obj.generateUid();
+        for (Component c : obj.getAllComponents()) {
+            c.generateId();
+        }
+
+        SpriteRenderer sprite = obj.getComponent(SpriteRenderer.class);
+        if (sprite != null && sprite.getTexture() != null) {
+            sprite.setTexture(AssetPool.getTexture(sprite.getTexture().getFilepath()));
+        }
+
+        return obj;
+    }
+
     public boolean isDead() {
         return this.isDead;
     }
@@ -111,31 +134,11 @@ public class GameObject {
         this.doSerialization = false;
     }
 
-    public boolean doSerialization() {
-        return this.doSerialization;
-    }
-
     public void generateUid() {
         this.uid = ID_COUNTER++;
     }
 
-    public GameObject copy() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Component.class, new ComponentDeserializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
-                .create();
-        String objAsJson = gson.toJson(this);
-        GameObject obj = gson.fromJson(objAsJson, GameObject.class);
-        obj.generateUid();
-        for (Component c : obj.getAllComponents()) {
-            c.generateId();
-        }
-
-        SpriteRenderer sprite  = obj.getComponent(SpriteRenderer.class);
-        if (sprite != null && sprite.getTexture() != null) {
-            sprite.setTexture(AssetPool.getTexture(sprite.getTexture().getFilepath()));
-        }
-
-        return obj;
+    public boolean doSerialization() {
+        return this.doSerialization;
     }
 }

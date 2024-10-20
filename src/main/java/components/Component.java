@@ -4,6 +4,7 @@ import editor.JImGui;
 import imgui.ImGui;
 import imgui.type.ImInt;
 import jade.GameObject;
+import org.jbox2d.dynamics.contacts.Contact;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -26,6 +27,22 @@ public abstract class Component {
     }
 
     public void editorUpdate(float dt) {
+
+    }
+
+    public void beginCollision(GameObject collidingObject, Contact contact, Vector2f hitNormal) {
+
+    }
+
+    public void endCollision(GameObject collidingObject, Contact contact, Vector2f hitNormal) {
+
+    }
+
+    public void preSolve(GameObject collidingObject, Contact contact, Vector2f hitNormal) {
+
+    }
+
+    public void postSolve(GameObject collidingObject, Contact contact, Vector2f hitNormal) {
 
     }
 
@@ -71,7 +88,7 @@ public abstract class Component {
                     Vector4f val = (Vector4f)value;
                     JImGui.colorPicker4(name, val);
                 } else if (type.isEnum()) {
-                    String [] enumValues = getEnumValues(type);
+                    String[] enumValues = getEnumValues(type);
                     String enumType = ((Enum)value).name();
                     ImInt index = new ImInt(indexOf(enumType, enumValues));
                     if (ImGui.combo(field.getName(), index, enumValues, enumValues.length)) {
@@ -105,12 +122,13 @@ public abstract class Component {
         return enumValues;
     }
 
-    private int indexOf(String value, String[] array) {
-        for (int i = 0; i < array.length; i++) {
-            if (value.equals(array[i])) {
+    private int indexOf(String str, String[] arr) {
+        for (int i=0; i < arr.length; i++) {
+            if (str.equals(arr[i])) {
                 return i;
             }
         }
+
         return -1;
     }
 

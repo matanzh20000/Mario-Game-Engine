@@ -35,6 +35,7 @@ public class Transform extends Component {
 
     @Override
     public void imgui() {
+        gameObject.name = JImGui.inputText("Name: ", gameObject.name);
         JImGui.drawVec2Control("Position", this.position);
         JImGui.drawVec2Control("Scale", this.scale, 32.0f);
         this.rotation = JImGui.dragFloat("Rotation", this.rotation);
@@ -51,7 +52,7 @@ public class Transform extends Component {
         if (o == null) return false;
         if (!(o instanceof Transform)) return false;
 
-        Transform t = (Transform) o;
+        Transform t = (Transform)o;
         return t.position.equals(this.position) && t.scale.equals(this.scale) &&
                 t.rotation == this.rotation && t.zIndex == this.zIndex;
     }

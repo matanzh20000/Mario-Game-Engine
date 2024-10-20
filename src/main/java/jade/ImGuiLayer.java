@@ -3,6 +3,7 @@ package jade;
 import editor.GameViewWindow;
 import editor.MenuBar;
 import editor.PropertiesWindow;
+import editor.SceneHierarchyWindow;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
@@ -13,7 +14,7 @@ import imgui.type.ImBoolean;
 import renderer.PickingTexture;
 import scenes.Scene;
 
-import java.util.PropertyResourceBundle;
+import java.io.File;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -24,8 +25,6 @@ public class ImGuiLayer {
 
     private long glfwWindow;
 
-    // Mouse cursors provided by GLFW
-
     // LWJGL3 renderer (SHOULD be initialized)
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -33,12 +32,18 @@ public class ImGuiLayer {
     private GameViewWindow gameViewWindow;
     private PropertiesWindow propertiesWindow;
     private MenuBar menuBar;
+    private SceneHierarchyWindow sceneHeirarchyWindow;
 
     public ImGuiLayer(long glfwWindow, PickingTexture pickingTexture) {
         this.glfwWindow = glfwWindow;
         this.gameViewWindow = new GameViewWindow();
         this.propertiesWindow = new PropertiesWindow(pickingTexture);
         this.menuBar = new MenuBar();
+        this.sceneHeirarchyWindow = new SceneHierarchyWindow();
+    }
+
+    public GameViewWindow getGameViewWindow() {
+        return this.gameViewWindow;
     }
 
     // Initialize Dear ImGui.
@@ -52,10 +57,9 @@ public class ImGuiLayer {
         final ImGuiIO io = ImGui.getIO();
 
         io.setIniFilename("imgui.ini"); // We don't want to save .ini file
-        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
-//        io.setConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setBackendPlatformName("imgui_java_impl_glfw");
-
 
         // ------------------------------------------------------------
         // GLFW callbacks to handle user input
@@ -106,7 +110,11 @@ public class ImGuiLayer {
         glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
             io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
             io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
-            MouseListener.mouseScrollCallback(w, xOffset, yOffset);
+            if (!io.getWantCaptureMouse() || gameViewWindow.getWantCaptureMouse()) {
+                MouseListener.mouseScrollCallback(w, xOffset, yOffset);
+            } else {
+                MouseListener.clear();
+            }
         });
 
         io.setSetClipboardTextFn(new ImStrConsumer() {
@@ -132,20 +140,19 @@ public class ImGuiLayer {
         // Fonts configuration
         // Read: https://raw.githubusercontent.com/ocornut/imgui/master/docs/FONTS.txt
 
-        final ImFontAtlas fontAtlas = io.getFonts();
-        final ImFontConfig fontConfig = new ImFontConfig(); // Natively allocated object, should be explicitly destroyed
+        if (new File("assets/fonts/segoeui.ttf").isFile()) {
+            final ImFontAtlas fontAtlas = io.getFonts();
+            final ImFontConfig fontConfig = new ImFontConfig(); // Natively allocated object, should be explicitly destroyed
 
-        // Glyphs could be added per-font as well as per config used globally like here
-        fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
+            // Glyphs could be added per-font as well as per config used globally like here
+            fontConfig.setGlyphRanges(fontAtlas.getGlyphRangesDefault());
 
-        // Fonts merge example
-        fontConfig.setPixelSnapH(true);
-        fontAtlas.addFontFromFileTTF("assets/fonts/segoeui.ttf", 20, fontConfig);
+            // Fonts merge example
+            fontConfig.setPixelSnapH(true);
+            fontAtlas.addFontFromFileTTF("assets/fonts/segoeui.ttf", 24, fontConfig);
+            fontConfig.destroy(); // After all fonts were added we don't need this config more
+        }
 
-        fontConfig.destroy(); // After all fonts were added we don't need this config more
-
-        // ------------------------------------------------------------
-        // Use freetype instead of stb_truetype to build a fonts texture
 
         // Method initializes LWJGL3 renderer.
         // This method SHOULD be called after you've initialized your ImGui configuration (fonts and so on).
@@ -160,33 +167,34 @@ public class ImGuiLayer {
         // Any Dear ImGui code SHOULD go between ImGui.newFrame()/ImGui.render() methods
         setupDockspace();
         currentScene.imgui();
-//        ImGui.showDemoWindow();
+        //ImGui.showDemoWindow();
         gameViewWindow.imgui();
-        propertiesWindow.update(dt, currentScene);
         propertiesWindow.imgui();
+        sceneHeirarchyWindow.imgui();
+
         endFrame();
     }
 
     private void startFrame(final float deltaTime) {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
-
     }
 
     private void endFrame() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, Window.getWidth(), Window.getHeight());
-        glClearColor(0f, 0f, 0f, 1.0f);
+        glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
         // After Dear ImGui prepared a draw data, we use it in the LWJGL3 renderer.
         // At that moment ImGui will be rendered to the current OpenGL context.
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
-//
-//        long backupWindowPtr = glfwGetCurrentContext();
-//        ImGui.updatePlatformWindows();
-//        ImGui.renderPlatformWindowsDefault();
-//        glfwMakeContextCurrent(backupWindowPtr);
+
+        long backupWindowPtr = glfwGetCurrentContext();
+        ImGui.updatePlatformWindows();
+        ImGui.renderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backupWindowPtr);
     }
 
     // If you want to clean a room after yourself - do it by yourself
@@ -197,11 +205,11 @@ public class ImGuiLayer {
 
     private void setupDockspace() {
         int windowFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
-//        ImGuiViewport mainViewport = ImGui.getMainViewport();
-//        ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
-//        ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
-//        ImGui.setNextWindowViewport(mainViewport.getID());
 
+        ImGuiViewport mainViewport = ImGui.getMainViewport();
+        ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
+        ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
+        ImGui.setNextWindowViewport(mainViewport.getID());
         ImGui.setNextWindowPos(0.0f, 0.0f);
         ImGui.setNextWindowSize(Window.getWidth(), Window.getHeight());
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
@@ -215,6 +223,7 @@ public class ImGuiLayer {
 
         // Dockspace
         ImGui.dockSpace(ImGui.getID("Dockspace"));
+
         menuBar.imgui();
 
         ImGui.end();
